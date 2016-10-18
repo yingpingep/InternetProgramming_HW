@@ -37,16 +37,17 @@ namespace ConsoleApplication
             // Findout the file size
             int DataSize = Convert.ToInt32(Encoding.ASCII.GetString(SureSize, 0, tmp));
 
-            byte[] buffer = new byte[4096];
+            byte[] buffer = new byte[1024];
             
             // Creat a FileStream to store file
-            Stream file = new FileStream(FileName, FileMode.Append);
+            Stream file = new FileStream(FileName, FileMode.Create);
             int UnGetSize = DataSize;       // Remind data
             
             while (UnGetSize > 0)
             {                
-                UnGetSize -= ConnectToServer.Receive(buffer);           
-                file.Write(buffer, 0, buffer.Length);                
+                int ReceiveData = ConnectToServer.Receive(buffer);
+                UnGetSize -= ReceiveData;           
+                file.Write(buffer, 0, ReceiveData);                
             }
             
             Console.WriteLine("Receive Sucessful!");

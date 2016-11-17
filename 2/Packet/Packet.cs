@@ -18,7 +18,7 @@ namespace Packet
             return ms.ToArray();
         }
 
-        public static byte[] PacketArrayToByteArray(List<PacketFormate> packets)
+        public static byte[] PacketListToByteArray(List<PacketFormate> packets)
         {
             MemoryStream ms = new MemoryStream();
             BinaryFormatter bf = new BinaryFormatter();
@@ -36,7 +36,7 @@ namespace Packet
             return packet;
         }                
 
-        public static List<PacketFormate> ByteArrayToPacketArray(byte[] bytes, int len)
+        public static List<PacketFormate> ByteArrayToPacketList(byte[] bytes, int len)
         {
             MemoryStream ms = new MemoryStream();
             BinaryFormatter bf = new BinaryFormatter();
@@ -62,6 +62,16 @@ namespace Packet
             this.syn = syn;
             this.ack = ack;
             this.fin = fin;
+            this.sequenceNumber = sequenceNumber;
+            this.ackNumber = ackNumber;
+            this.data = data;
+        }
+
+        public PacketFormate(int sequenceNumber, int ackNumber, int data)
+        {
+            syn = false;
+            ack = false;
+            fin = false;
             this.sequenceNumber = sequenceNumber;
             this.ackNumber = ackNumber;
             this.data = data;

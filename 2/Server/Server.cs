@@ -78,7 +78,6 @@ namespace Server
                 udpSocket.SendTo(buffer, remoteEP);
                 packets.Clear();
 
-                // TODO receive ack packet
                 int len = udpSocket.ReceiveFrom(buffer, ref remoteEP);
                 packets = Method.ByteArrayToPacketArray(buffer, len);
                 foreach (var item in packets)

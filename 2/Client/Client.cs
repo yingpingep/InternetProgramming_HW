@@ -14,38 +14,61 @@ namespace Client
     class Client
     {
         static void Main(string[] args)
-        {            
-            IPEndPoint serverIP = new IPEndPoint(IPAddress.Parse(args[0]), Convert.ToInt32(args[1]));
+        {
+            // IPEndPoint serverIP = new IPEndPoint(IPAddress.Parse(args[0]), Convert.ToInt32(args[1]));
+            IPEndPoint serverIP = new IPEndPoint(IPAddress.Parse("140.118.138.236"), 3353);
             Socket udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+
+
 
             Random random = new Random();
             int startNumber = random.Next() % 200;    
             byte[] buffer = new byte[1024];
-            bool connected  = Handshake(udpSocket, serverIP, ref startNumber,buffer);
+            int packetNum = Handshake(udpSocket, serverIP, ref startNumber,buffer);
 
             // TODO Receive
+            bool t = Receive(udpSocket, serverIP, packetNum, buffer);
         }
 
-        static bool Handshake(Socket udpSocket, IPEndPoint serverIP, ref int startNumber, byte[] buffer)
+        static int Handshake(Socket udpSocket, IPEndPoint serverIP, ref int sequenceNum, byte[] buffer)
         {
-            PacketFormate packet = new PacketFormate(true, false, false, startNumber++, 0, 4456789);
+            PacketFormate packet = new PacketFormate(true, false, false, sequenceNum++, 0, 4456789);
             buffer = Method.PacketToByteArray(packet);
             udpSocket.SendTo(buffer, serverIP);            
 
             Array.Clear(buffer, 0, buffer.Length);
             EndPoint remoteEP = serverIP;
-            int len = udpSocket.ReceiveFrom(buffer, ref remoteEP);   
-            packet = Method.ByteArrayToPacket(buffer, len);        
+            int len = udpSocket.ReceiveFrom(buffer, ref remoteEP);
+            packet = Method.ByteArrayToPacket(buffer, len);
+            int packetNum = packet.data; 
 
-            if (packet.ackNumber == startNumber)
+            if (packet.ackNumber == sequenceNum)
             {
-                packet = new PacketFormate(false, true, false, startNumber++, packet.sequenceNumber + 1, 0);
+                packet = new PacketFormate(false, true, false, sequenceNum++, packet.sequenceNumber + 1, 0);
                 Array.Clear(buffer, 0, buffer.Length);
                 buffer = Method.PacketToByteArray(packet);
-                udpSocket.SendTo(buffer, serverIP);                
+                udpSocket.SendTo(buffer, serverIP);
             }
 
-            return true;
+            return packetNum;
+        }
+
+        static bool Receive(Socket udpSocket, IPEndPoint serverIP, int packetNum, byte[] buffer)
+        {
+            bool[] receivePacket = new bool[packetNum];            
+            int sequenceNum = 0;
+            int ackNum;
+            EndPoint remoteEP = serverIP;
+            while(true)
+            {
+                Array.Clear(buffer, 0, buffer.Length);
+                int len = udpSocket.ReceiveFrom(buffer, ref remoteEP);
+                PacketFormate packet = Method.ByteArrayToPacket(buffer, len);
+                ackNum = packet.sequenceNumber;
+                receivePacket[ackNum] = true;               
+                packet = new PacketFormate(false, false, false, sequenceNum++, ackNum + 1, 0);
+                // TODO sent ack packet to server
+            }
         }
     }
 }

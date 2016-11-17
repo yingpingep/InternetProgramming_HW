@@ -26,7 +26,7 @@ namespace Packet
             ms.Seek(0, SeekOrigin.Begin);                       // Use to make the position from current to begin
             PacketFormate packet = (PacketFormate)bf.Deserialize(ms);
             return packet;
-        }        
+        }                
     }
 
     [Serializable]

@@ -15,9 +15,9 @@ namespace Client
     {
         static void Main(string[] args)
         {
-            // IPEndPoint serverIP = new IPEndPoint(IPAddress.Parse(args[0]), Convert.ToInt32(args[1]));
+            IPEndPoint serverIP = new IPEndPoint(IPAddress.Parse(args[0]), Convert.ToInt32(args[1]));
             // IPEndPoint serverIP = new IPEndPoint(IPAddress.Parse("140.118.138.236"), 3353);
-            IPEndPoint serverIP = new IPEndPoint(IPAddress.Parse("192.168.1.103"), 3353);
+            // IPEndPoint serverIP = new IPEndPoint(IPAddress.Parse("192.168.1.103"), 3353);
             Socket udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
        
             Random random = new Random();
@@ -103,18 +103,27 @@ namespace Client
 
             if (!isGot)
             {
-                byte[] buffer = new byte[1024];
-                int len = udpSocket.ReceiveFrom(buffer, ref remoteEP);
-                packets = Method.ByteArrayToPacketList(buffer, len);
-
-                foreach (var item in packets)
-                {
-                    isReceive[item.sequenceNumber].ack = true;
-                    Console.WriteLine("Receive sequence number {0}", item.sequenceNumber);
-                }
-
-                Ack(udpSocket, remoteEP, head, tail, ref isReceive);
+                ReAck(udpSocket, remoteEP, ref isReceive);   
             }
+        }
+
+        static void ReAck(Socket udpSocket, EndPoint remoteEP, ref PacketFormate[] isReceive)
+        {
+            byte[] buffer = new byte[1024];
+            int len = udpSocket.ReceiveFrom(buffer, ref remoteEP);
+            List<PacketFormate> packets = Method.ByteArrayToPacketList(buffer, len);
+            List<PacketFormate> sendPackets = new List<PacketFormate>();
+
+            foreach (var item in packets)
+            {
+                isReceive[item.sequenceNumber].ack = true;
+                isReceive[item.sequenceNumber].data = 1;
+                PacketFormate packet = new PacketFormate(item.sequenceNumber, item.sequenceNumber + 1, 0);
+                sendPackets.Add(packet);
+                Console.WriteLine("Receive sequence number {0}", item.sequenceNumber);
+            }
+
+            udpSocket.SendTo(Method.PacketListToByteArray(sendPackets), remoteEP);
         }
     }
 }

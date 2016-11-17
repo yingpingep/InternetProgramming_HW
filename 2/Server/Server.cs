@@ -15,10 +15,10 @@ namespace Server
     {
         static void Main(string[] args)
         {
-            // int listenPort = Convert.ToInt32(args[0]);
-            // int transPacketNumber = Convert.ToInt32(args[1]);            
-            int listenPort = 3353;
-            int transPacketNumber = 12;
+            int listenPort = Convert.ToInt32(args[0]);
+            int transPacketNumber = Convert.ToInt32(args[1]);            
+            // int listenPort = 3353;
+            // int transPacketNumber = 12;
             IPEndPoint listenOn = new IPEndPoint(IPAddress.Any, listenPort);
 
             Socket udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
@@ -33,15 +33,23 @@ namespace Server
             int windowSize = 5;
             int head = 0;
             int tail = head + windowSize;
-            int sequenceNum = 0;      
-             
+            int sequenceNum = 0;
+
+            Console.WriteLine("Start transmission ...");             
             while(true)
             {
                 int oHead = head;
                 int oTail = tail;
                 udpSocket.SendTo(TransSlideWindow(ref head, ref tail, windowSize, ref sequenceNum, transPacketNumber), remoteEP);
-                ReceiveAck(udpSocket, remoteEP, ref isAck);
-                Retransfer(udpSocket, remoteEP, oHead, oTail, isAck);
+                while (true)
+                {
+                    ReceiveAck(udpSocket, remoteEP, ref isAck);
+                    Retransfer(udpSocket, remoteEP, oHead, oTail, isAck);
+                    if (ReceiveAck(udpSocket, remoteEP, ref isAck))
+                    {
+                        break;
+                    }
+                }                
             }          
         }
         
@@ -74,9 +82,28 @@ namespace Server
             List<PacketFormate> packets = new List<PacketFormate>();
             for (int i = head; i < tail; i++)
             {
-                if (sequenceNum < transPacketNumber)
+                //if (sequenceNum < transPacketNumber)
+                //{
+                //    PacketFormate packet = new PacketFormate(sequenceNum, 0, 0);
+                //    packets.Add(packet);
+                //    Console.WriteLine("Sent packet sequence number {0}", sequenceNum);
+                //    sequenceNum += 1;
+                //}
+                //else
+                //{
+                //    break;
+                //}                
+
+                if (sequenceNum < transPacketNumber && sequenceNum % 3 != 0 || sequenceNum == 0)
                 {
                     PacketFormate packet = new PacketFormate(sequenceNum, 0, 0);
+                    packets.Add(packet);
+                    Console.WriteLine("Sent packet sequence number {0}", sequenceNum);
+                    sequenceNum += 1;
+                }
+                else if (sequenceNum < transPacketNumber && sequenceNum % 3 == 0)
+                {
+                    PacketFormate packet = new PacketFormate(++sequenceNum, 0, 0);
                     packets.Add(packet);
                     Console.WriteLine("Sent packet sequence number {0}", sequenceNum);
                     sequenceNum += 1;
@@ -84,7 +111,8 @@ namespace Server
                 else
                 {
                     break;
-                }                
+                }
+
             }
 
             head = tail;       
@@ -96,7 +124,7 @@ namespace Server
             return Method.PacketListToByteArray(packets);
         }
 
-        static void ReceiveAck(Socket udpSocket, EndPoint remoteEP, ref PacketFormate[] isAck)
+        static bool ReceiveAck(Socket udpSocket, EndPoint remoteEP, ref PacketFormate[] isAck)
         {
             byte[] buffer = new byte[1024];            
             int len = udpSocket.ReceiveFrom(buffer, ref remoteEP);
@@ -114,6 +142,8 @@ namespace Server
                 }
                 Console.WriteLine("Receive ack number {0}", item.ackNumber);
             }
+
+            return true;
         }
 
         static void Retransfer(Socket udpSocket, EndPoint remoteEP, int head, int tail, PacketFormate[] isAck)

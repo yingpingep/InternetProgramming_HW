@@ -28,7 +28,7 @@ namespace Client
 
         static bool Handshake(Socket udpSocket, IPEndPoint serverIP, ref int startNumber, byte[] buffer)
         {
-            PacketFormate packet = new PacketFormate(true, false, false, startNumber++, 0, 0);
+            PacketFormate packet = new PacketFormate(true, false, false, startNumber++, 0, 4456789);
             buffer = Method.PacketToByteArray(packet);
             udpSocket.SendTo(buffer, serverIP);            
 

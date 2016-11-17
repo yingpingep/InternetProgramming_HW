@@ -37,7 +37,7 @@ namespace Server
             EndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
 
             int len = udpSocket.ReceiveFrom(buffer, ref remoteEP);
-            Console.WriteLine("Start three-way handshake");
+            Console.WriteLine("Start three-way handshake ...");
             PacketFormate packet = Method.ByteArrayToPacket(buffer, len);           
 
             if (packet.syn)
@@ -58,23 +58,29 @@ namespace Server
 
         static bool Transfer(Socket udpSocket, EndPoint remoteEP, int transPacketNumber, byte[] buffer)
         {
+            Console.WriteLine("Start Transmission ...");
             bool[] receiveAck = new bool[transPacketNumber];
             List<PacketFormate> packets = new List<PacketFormate>();
 
             PacketFormate packet;
             int sequenceNum = 0;            
-            int windowSize = 4;
+            int windowSize = 5;
 
-            while (sequenceNum != transPacketNumber)
+            while (true)
             {
                 for (int i = 0; i < windowSize; i++)
                 {
+                    if (sequenceNum >= transPacketNumber)
+                    {
+                        break;
+                    }
                     packet = new PacketFormate(false, false, false, sequenceNum, 0, 0);
-                    packets.Add(packet);
-                    buffer = Method.PacketArrayToByteArray(packets);
-                    Console.WriteLine("Sent Packet Number {0}", sequenceNum);
+                    packets.Add(packet);                    
+                    Console.WriteLine("Sent Sequence Number {0}", sequenceNum);
                     sequenceNum = sequenceNum + 1;
-                }
+                }                
+
+                buffer = Method.PacketArrayToByteArray(packets);
                 udpSocket.SendTo(buffer, remoteEP);
                 packets.Clear();
 
@@ -85,11 +91,11 @@ namespace Server
                     receiveAck[item.ackNumber - 1] = true;
                     Console.WriteLine("Receive Ack Number {0}", item.ackNumber);
                 }
+                                
                 packets.Clear();                
 
                 // TODO escope the loop            
-            }
-            return true;
+            }            
         }
 
         static int AckCheck(Socket udpSocket, EndPoint remoteEP, byte[] buffer)

@@ -59,8 +59,7 @@ namespace Client
             EndPoint remoteEP = serverIP;            
 
             while(true)
-            {
-                // Array.Clear(buffer, 0, buffer.Length);
+            {                
                 int len = udpSocket.ReceiveFrom(buffer, ref remoteEP);
                 PacketFormate packet = new PacketFormate();
                 List<PacketFormate> packets = Method.ByteArrayToPacketArray(buffer, len);
@@ -68,8 +67,10 @@ namespace Client
 
                 foreach (var item in packets)
                 {
-                    ackNum = item.sequenceNumber;
+                    ackNum = item.sequenceNumber;                    
                     receivePacket[ackNum] = true;
+
+                    Console.WriteLine("Receive Sequence Number {0}", item.sequenceNumber);
 
                     packet = new PacketFormate(false, false, false, sequenceNum++, ackNum + 1, 0);
                     sendPackets.Add(packet);

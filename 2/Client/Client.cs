@@ -57,30 +57,28 @@ namespace Client
         {
             bool[] receivePacket = new bool[packetNum];            
             int sequenceNum = 0;
-            int ackNum;
-            EndPoint remoteEP = serverIP;
+            int ackNum = 0;
+            EndPoint remoteEP = serverIP;            
+
             while(true)
             {
-                Array.Clear(buffer, 0, buffer.Length);
+                // Array.Clear(buffer, 0, buffer.Length);
                 int len = udpSocket.ReceiveFrom(buffer, ref remoteEP);
-                PacketFormate packet = Method.ByteArrayToPacket(buffer, len);
-                ackNum = packet.sequenceNumber;
-                receivePacket[ackNum] = true;               
-                
-                // TODO make slidewindow better
-                // like:
-                // sent 0
-                // sent 1
-                // sent 2
-                // receive 1
-                // receive 2
-                // receive 3
-                // sent 3 ...
+                PacketFormate packet = new PacketFormate();
+                List<PacketFormate> packets = Method.ByteArrayToPacketArray(buffer, len);
+                List<PacketFormate> sendPackets = new List<PacketFormate>();
 
-                packet = new PacketFormate(false, false, false, sequenceNum++, ackNum + 1, 0);
-                Array.Clear(buffer, 0, buffer.Length);
-                buffer = Method.PacketToByteArray(packet);
-                udpSocket.SendTo(buffer, serverIP);
+                foreach (var item in packets)
+                {
+                    ackNum = item.sequenceNumber;
+                    receivePacket[ackNum] = true;
+
+                    packet = new PacketFormate(false, false, false, sequenceNum++, ackNum + 1, 0);
+                    sendPackets.Add(packet);
+                }
+            
+                buffer = Method.PacketArrayToByteArray(sendPackets);
+                udpSocket.SendTo(buffer, serverIP);                
             }
         }
     }

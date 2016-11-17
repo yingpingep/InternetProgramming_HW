@@ -18,6 +18,14 @@ namespace Packet
             return ms.ToArray();
         }
 
+        public static byte[] PacketArrayToByteArray(List<PacketFormate> packets)
+        {
+            MemoryStream ms = new MemoryStream();
+            BinaryFormatter bf = new BinaryFormatter();
+            bf.Serialize(ms, packets);
+            return ms.ToArray();
+        }
+
         public static PacketFormate ByteArrayToPacket(byte[] bytes, int len)
         {
             MemoryStream ms = new MemoryStream();
@@ -27,6 +35,16 @@ namespace Packet
             PacketFormate packet = (PacketFormate)bf.Deserialize(ms);
             return packet;
         }                
+
+        public static List<PacketFormate> ByteArrayToPacketArray(byte[] bytes, int len)
+        {
+            MemoryStream ms = new MemoryStream();
+            BinaryFormatter bf = new BinaryFormatter();
+            ms.Write(bytes, 0, len);
+            ms.Seek(0, SeekOrigin.Begin);           // Use to make the position from current to begin
+            List<PacketFormate> packets = (List<PacketFormate>)bf.Deserialize(ms);
+            return packets;
+        }
     }
 
     [Serializable]

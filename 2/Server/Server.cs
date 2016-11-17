@@ -58,49 +58,45 @@ namespace Server
 
         static bool Transfer(Socket udpSocket, EndPoint remoteEP, int transPacketNumber, byte[] buffer)
         {
-            bool[] receiveAck = new bool[transPacketNumber];            
+            bool[] receiveAck = new bool[transPacketNumber];
+            List<PacketFormate> packets = new List<PacketFormate>();
 
             PacketFormate packet;
-            int sequenceNum = 0;
+            int sequenceNum = 0;            
+            int windowSize = 4;
 
-            for (int i = 0; i < 4; i++)
+            while (sequenceNum != transPacketNumber)
             {
-                packet = new PacketFormate(false, false, false, sequenceNum, 0, 0);
-                buffer = Method.PacketToByteArray(packet);
-                udpSocket.SendTo(buffer, remoteEP);
-                Console.WriteLine("Sent Packet Number {0}", sequenceNum);
-                sequenceNum = sequenceNum + 1;
-            }
-
-            byte[] reBuffer = new byte[1024];
-
-            while (true)
-            {
-                Array.Clear(reBuffer, 0, reBuffer.Length);
-                int ackNumRecive = AckCheck(udpSocket, remoteEP, reBuffer);
-                Console.WriteLine("Receive Packet Number {0}", ackNumRecive);
-                receiveAck[ackNumRecive - 1] = true;
-                
-                if (sequenceNum != transPacketNumber)
+                for (int i = 0; i < windowSize; i++)
                 {
-                    // TODO send next packet sequence number += 1
                     packet = new PacketFormate(false, false, false, sequenceNum, 0, 0);
-                    buffer = Method.PacketToByteArray(packet);
-                    udpSocket.SendTo(buffer, remoteEP);
-                    Console.WriteLine("Sent Number {0}", sequenceNum);
+                    packets.Add(packet);
+                    buffer = Method.PacketArrayToByteArray(packets);
+                    Console.WriteLine("Sent Packet Number {0}", sequenceNum);
                     sequenceNum = sequenceNum + 1;
-
-                    // TODO duble packet check
                 }
+                udpSocket.SendTo(buffer, remoteEP);
+                packets.Clear();
 
-                // TODO escope the loop
-            }        
+                // TODO receive ack packet
+                int len = udpSocket.ReceiveFrom(buffer, ref remoteEP);
+                packets = Method.ByteArrayToPacketArray(buffer, len);
+                foreach (var item in packets)
+                {
+                    receiveAck[item.ackNumber - 1] = true;
+                    Console.WriteLine("Receive Ack Number {0}", item.ackNumber);
+                }
+                packets.Clear();                
+
+                // TODO escope the loop            
+            }
+            return true;
         }
 
         static int AckCheck(Socket udpSocket, EndPoint remoteEP, byte[] buffer)
         {
             int len = udpSocket.ReceiveFrom(buffer, ref remoteEP);
             return Method.ByteArrayToPacket(buffer, len).ackNumber;
-        }
+        }        
     }
 }

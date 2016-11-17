@@ -15,10 +15,10 @@ namespace Server
     {
         static void Main(string[] args)
         {
-            // int listenPort = Convert.ToInt32(args[0]);
-            // int transPacketNumber = Convert.ToInt32(args[1]);
-            int listenPort = 3353;
-            int transPacketNumber = 12;
+            int listenPort = Convert.ToInt32(args[0]);
+            int transPacketNumber = Convert.ToInt32(args[1]);
+            // int listenPort = 3353;
+            // int transPacketNumber = 12;
             IPEndPoint listenOn = new IPEndPoint(IPAddress.Any, listenPort);
 
             Socket udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);

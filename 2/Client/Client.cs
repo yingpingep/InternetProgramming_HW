@@ -15,12 +15,10 @@ namespace Client
     {
         static void Main(string[] args)
         {
-            // IPEndPoint serverIP = new IPEndPoint(IPAddress.Parse(args[0]), Convert.ToInt32(args[1]));
-            IPEndPoint serverIP = new IPEndPoint(IPAddress.Parse("140.118.138.236"), 3353);
+            IPEndPoint serverIP = new IPEndPoint(IPAddress.Parse(args[0]), Convert.ToInt32(args[1]));
+            // IPEndPoint serverIP = new IPEndPoint(IPAddress.Parse("140.118.138.236"), 3353);
             Socket udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-
-
-
+       
             Random random = new Random();
             int startNumber = random.Next() % 200;    
             byte[] buffer = new byte[1024];

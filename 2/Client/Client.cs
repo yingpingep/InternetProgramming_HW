@@ -66,8 +66,21 @@ namespace Client
                 PacketFormate packet = Method.ByteArrayToPacket(buffer, len);
                 ackNum = packet.sequenceNumber;
                 receivePacket[ackNum] = true;               
+                
+                // TODO make slidewindow better
+                // like:
+                // sent 0
+                // sent 1
+                // sent 2
+                // receive 1
+                // receive 2
+                // receive 3
+                // sent 3 ...
+
                 packet = new PacketFormate(false, false, false, sequenceNum++, ackNum + 1, 0);
-                // TODO sent ack packet to server
+                Array.Clear(buffer, 0, buffer.Length);
+                buffer = Method.PacketToByteArray(packet);
+                udpSocket.SendTo(buffer, serverIP);
             }
         }
     }

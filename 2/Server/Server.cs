@@ -62,14 +62,13 @@ namespace Server
 
             PacketFormate packet;
             int sequenceNum = 0;
-            int backStart = sequenceNum;
 
             for (int i = 0; i < 4; i++)
             {
                 packet = new PacketFormate(false, false, false, sequenceNum, 0, 0);
                 buffer = Method.PacketToByteArray(packet);
                 udpSocket.SendTo(buffer, remoteEP);
-                Console.WriteLine("Sent Number {0}", sequenceNum);
+                Console.WriteLine("Sent Packet Number {0}", sequenceNum);
                 sequenceNum = sequenceNum + 1;
             }
 
@@ -79,20 +78,23 @@ namespace Server
             {
                 Array.Clear(reBuffer, 0, reBuffer.Length);
                 int ackNumRecive = AckCheck(udpSocket, remoteEP, reBuffer);
-                if (receiveAck[ackNumRecive - 1])
+                Console.WriteLine("Receive Packet Number {0}", ackNumRecive);
+                receiveAck[ackNumRecive - 1] = true;
+                
+                if (sequenceNum != transPacketNumber)
                 {
                     // TODO send next packet sequence number += 1
+                    packet = new PacketFormate(false, false, false, sequenceNum, 0, 0);
+                    buffer = Method.PacketToByteArray(packet);
+                    udpSocket.SendTo(buffer, remoteEP);
+                    Console.WriteLine("Sent Number {0}", sequenceNum);
+                    sequenceNum = sequenceNum + 1;
 
-                    if (receiveAck[transPacketNumber - 1])
-                    {
-                        return true;
-                    }            
+                    // TODO duble packet check
                 }
-                else
-                {
-                    // TODO Re-transfer method
-                }
-            }            
+
+                // TODO escope the loop
+            }        
         }
 
         static int AckCheck(Socket udpSocket, EndPoint remoteEP, byte[] buffer)

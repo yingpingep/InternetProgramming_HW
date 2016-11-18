@@ -168,7 +168,7 @@ namespace Server
             }
             catch
             {
-                Retransfer(udpSocket, remoteEP, head, tail, isAck);
+                return false;
             }
 
             List<PacketFormate> packets = Method.ByteArrayToPacketList(buffer, len);

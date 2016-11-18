@@ -42,7 +42,7 @@ namespace Packet
             BinaryFormatter bf = new BinaryFormatter();
             ms.Write(bytes, 0, len);
             ms.Seek(0, SeekOrigin.Begin);           // Use to make the position from current to begin
-            List<PacketFormate> packets = (List<PacketFormate>)bf.Deserialize(ms);
+            List<PacketFormate> packets = (List<PacketFormate>)bf.Deserialize(ms);  
             return packets;
         }
     }

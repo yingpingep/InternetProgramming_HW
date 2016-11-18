@@ -160,7 +160,16 @@ namespace Server
         {
             byte[] buffer = new byte[1024];
             // TODO Timeout
-            int len = udpSocket.ReceiveFrom(buffer, ref remoteEP);            
+            int len = 0;
+            udpSocket.ReceiveTimeout = 1000;
+            try
+            {
+                len = udpSocket.ReceiveFrom(buffer, ref remoteEP);
+            }
+            catch
+            {
+                Retransfer(udpSocket, remoteEP, head, tail, isAck);
+            }
 
             List<PacketFormate> packets = Method.ByteArrayToPacketList(buffer, len);
 

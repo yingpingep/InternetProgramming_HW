@@ -168,6 +168,8 @@ namespace Server
             }
             catch
             {
+                Console.WriteLine("Timeout ... ");
+                Retransfer(udpSocket, remoteEP, head, tail, isAck);
                 return false;
             }
 

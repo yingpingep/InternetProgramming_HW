@@ -19,7 +19,7 @@ namespace Server
             int listenPort = Convert.ToInt32(args[0]);
             int transPacketNumber = Convert.ToInt32(args[1]);            
             // int listenPort = 3353;
-            // int transPacketNumber = 12;
+            // int transPacketNumber = 2574;
             IPEndPoint listenOn = new IPEndPoint(IPAddress.Any, listenPort);
 
             Socket udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
@@ -161,7 +161,7 @@ namespace Server
             byte[] buffer = new byte[1024];
             // TODO Timeout
             int len = 0;
-            udpSocket.ReceiveTimeout = 1000;
+            udpSocket.ReceiveTimeout = 300;
             try
             {
                 len = udpSocket.ReceiveFrom(buffer, ref remoteEP);
@@ -169,8 +169,7 @@ namespace Server
             catch
             {
                 Console.WriteLine("Timeout ... ");
-                Retransfer(udpSocket, remoteEP, head, tail, isAck);
-                Console.ReadLine();
+                Retransfer(udpSocket, remoteEP, head, tail, isAck);               
                 return false;
             }
 
@@ -201,13 +200,8 @@ namespace Server
         }
 
         static bool Retransfer(Socket udpSocket, EndPoint remoteEP, int head, int tail, PacketFormate[] isAck)
-        {
+         {
             List<PacketFormate> packets = new List<PacketFormate>();
-
-            if (packets.Count == 0)
-            {
-                return true; 
-            }
 
             for (int i = head; i < tail; i++)
             {
@@ -218,10 +212,17 @@ namespace Server
                     Console.WriteLine("Resent packet sequence number {0}", i);
                 }
             }
-         
-            byte[] buffer = Method.PacketListToByteArray(packets);
-            udpSocket.SendTo(buffer, remoteEP);
-            return true;
+
+            if (packets.Count == 0)
+            {
+                return true;
+            }
+            else
+            {
+                byte[] buffer = Method.PacketListToByteArray(packets);
+                udpSocket.SendTo(buffer, remoteEP);
+                return true;
+            }
         }
     }
 }

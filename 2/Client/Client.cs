@@ -15,8 +15,8 @@ namespace Client
     {
         static void Main(string[] args)
         {
-            // IPEndPoint serverIP = new IPEndPoint(IPAddress.Parse(args[0]), Convert.ToInt32(args[1]));
-            IPEndPoint serverIP = new IPEndPoint(IPAddress.Parse("140.118.138.208"), 3353);
+            IPEndPoint serverIP = new IPEndPoint(IPAddress.Parse(args[0]), Convert.ToInt32(args[1]));
+            // IPEndPoint serverIP = new IPEndPoint(IPAddress.Parse("140.118.138.208"), 3353);
             // IPEndPoint serverIP = new IPEndPoint(IPAddress.Parse("192.168.1.103"), 3353);
             Socket udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
        
@@ -39,15 +39,16 @@ namespace Client
                 ReceivePacket(udpSocket, serverIP, ref head, ref tail, ref isReceive, windowSize, ref receiveNum);
                 Ack(udpSocket, serverIP, oHead, oTail, ref isReceive);
 
-                if (isReceive[packetNum - 1].ack)
+                if (receiveNum == packetNum || isReceive[packetNum - 1].ack)
                 {
-                    // receiveNum == packetNum && 
+                    
                     Termination(udpSocket, serverIP, receiveNum);
                     break;
                     // Console.WriteLine(receiveNum);
                     // Console.ReadLine();
                 }
             }
+            Console.WriteLine(receiveNum);
             udpSocket.Close();
         }
 
@@ -83,13 +84,13 @@ namespace Client
             tail = head + windowSize;
             if (tail > isReceive.Count())
             {
-                tail = isReceive.Count();
-                receiveNum += isReceive.Count();
+                tail = isReceive.Count();                
             }
             foreach (var item in packets)
             {                
                 isReceive[item.sequenceNumber].ack = true;
                 Console.WriteLine("Receive sequence number {0}", item.sequenceNumber);
+                receiveNum += 1;
             }
         }
 

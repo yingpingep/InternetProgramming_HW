@@ -170,6 +170,7 @@ namespace Server
             {
                 Console.WriteLine("Timeout ... ");
                 Retransfer(udpSocket, remoteEP, head, tail, isAck);
+                Console.ReadLine();
                 return false;
             }
 

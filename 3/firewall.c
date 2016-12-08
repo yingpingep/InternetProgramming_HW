@@ -49,12 +49,13 @@ int main(int argc, char *argv[])
     /* 
     // Test Block //
     // To see whether the rule formatter working good //
-    */
+    
 
      printf("*****\n* %s *\n*****\n", ruleString);
      char a;
      scanf("%c", &a);
      
+	*/
 
     /* Get a device */
     device = pcap_lookupdev(errBuf);

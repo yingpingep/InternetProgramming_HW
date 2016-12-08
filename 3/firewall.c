@@ -53,8 +53,7 @@ int main(int argc, char *argv[])
 
      printf("*****\n* %s *\n*****\n", ruleString);
      char a;
-     scanf("%c", &a);
-     
+     scanf("%c", &a); 
 	*/
 
     /* Get a device */
